@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Tracing rays by CRB &amp; JGM</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="container">
+    <div style="text-align: center;">
+      <h1> Tracing rays by CRB &amp; JGM </h1><span id="webgl-impl"></span>
+    </div>
+    <div>
+      <p id="fps">60 fps</p>
+    </div>
+    <div style="position: relative; top: 0; left: 0; margin-top: 20px;">
+      <canvas id="canvas" width="512" height="512"></canvas>
+      <div id="statusContainer"><span id="status">Loading ...</span></div>
+    </div>
+    <div class="controls">
+      <p>
+        <div class="section">Scene Configuration</div>
+        <div class="form-group">
+        <label for="renderMode">Render Mode</label>
+          <select class="form-control" name="renderMode" id="renderMode">
+            <option value="0">Ray Tracer</option>
+            <option value="1" selected="selected">Path Tracer</option>
+            <option value="2" sf="SHCoeffsGrace">Spherical Harmonics (Grace)</option>
+            <option value="2" sf="SHCoeffsGalileo">Spherical Harmonics (Galileo)</option>
+            <option value="2" sf="SHCoeffsBeach">Spherical Harmonics (Beach)</option>
+            <option value="2" sf="SHCoeffsNeighbor">Spherical Harmonics (Neighbor)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="sceneSelector">Scene selector</label>
+          <select class="form-control" id="sceneSelector" name="sceneSelector">
+            <option value="scene0" selected="selected">Cubes, a dielectric and a metal</option>
+            <option value="scene1">Balls and crystal table</option>
+            <option value="scene1b">Balls and solid table with wood floor</option>
+            <option value="scene2">Cornell's Box Red-Green</option>
+            <option value="scene3">Cornell's Box Blue-Yellow</option>
+            <option value="scene4">URJC Logo</option>
+            <option value="scene7">Mesh Object</option>
+          </select>
+        </div>
+        <div class="form-group">
+          Bounces: <input type="number" id="bounces" min="1" max="16" step="1" value="8" />
+          Num Samples: <input type="number" id="numSamples" min="0" max="512" step="1" value="32" />
+          <br/>
+          <br/>
+          IOR: <input type="number" id="ior" name="ior" min="1" max="4" step="0.0000001" value="1.000277" />
+          <button class="btn" id="updIOR" type="button">Update IOR</button>
+          Check this <a href="https://en.wikipedia.org/wiki/List_of_refractive_indices">page</a> for real refractive indices
+          <br/>
+          <br/>
+          <button class="btn" type="button" id="downloadShader">Download Shader</button>
+          <button class="btn" type="button" id="resetShader">Reset</button>
+        </div>
+      </p>
+      <!-- NOT USED
+      <p>
+        <div class="section">Metal</div>
+        <label for="glossiness">Glossiness</label>
+        <input type="range" id="glossiness" name="glossiness" min="0" max="100" />
+        <br/>
+      </p>
+      -->
+      <hr/>
+      <p>
+        <div class="section">Light</div>
+        <label for="lightPositionX">Light X</label>
+        <input type="range" id="lightPositionX" name="lightPositionX" min="-300" max="300" />
+        <br/>
+        <label for="lightPositionY">Light Y</label>
+        <input type="range" id="lightPositionY" name="lightPositionY" min="-300" max="300" />
+        <br/>
+        <label for="lightPositionZ">Light Z</label>
+        <input type="range" id="lightPositionZ" name="lightPositionZ" min="-300" max="300" />
+        <br/>
+        <label for="lightColor">Light Color</label>
+        <input type="color" id="lightColor" name="lightColor" />
+        <br/>
+        <label for="lightIntensity">Light Intensity</label>
+        <input type="range" id="lightIntensity" name="lightIntensity" min="0" max="300" />
+        <br/>
+      </p>
+      <hr/>
+    </div>
+    <div class="controls">
+      <p>
+        <div class="section">Participative Media</div>
+        <div class="checkbox">
+          <label for="fog"><input type="checkbox" id="fog" name="fog" /> Fog</label>
+        </div>
+      </p>
+      <hr/>
+      <p>
+        <div class="section">Motion Blur</div>
+        <label for="maxTime">Maximum Time</label>
+        <input id="maxTimeSlider" name="maxTime" type="range" min="-50" max="50" value="0" step="0.1" />
+        <br>
+        <label for="shutterApperture">Shutter Apperture Time</label>
+        <input id="shutterAppertureSlider" name="shutterApperture" type="range" min="0" max="50" value="0" step="0.1" />
+      </p>
+      <hr/>
+      <p>
+        <div class="section">Tone Mapping</div>
+        <label class="radio-inline" for="noneBox">
+          <input type="radio" name="toneMap" id="noneBox">None</input>
+        </label>
+        <label class="radio-inline" for="linearBox">
+          <input type="radio" name="toneMap" id="linearBox" checked>Linear</input>
+        </label>
+        <label class="radio-inline" for="reinhardBox">
+          <input type="radio" name="toneMap" id="reinhardBox">Reinhard</input>
+        </label>
+        <label class="radio-inline" for="filmicBox">
+          <input type="radio" name="toneMap" id="filmicBox">Filmic</input>
+        </label>
+        <label class="radio-inline" for="sRGBBox">
+          <input type="radio" name="toneMap" id="sRGBBox">sRGB</input>
+        </label>
+        <label class="radio-inline" for="uncharted2Box">
+          <input type="radio" name="toneMap" id="uncharted2Box">Uncharted2</input>
+        </label>
+        <br>
+        <div id="exposure">
+          <label for="brightness">Exposure</label>
+          <input id="brightnessSlider" name="brightness" type="range" min="0" max="500" value="100" step="1" />
+        </div>
+      </p>
+      <hr/>
+      <p>
+        <div class="section">Depth of Field</div>
+        <label for="dofSpread">Blur Amount</label>
+        <input id="dofSpreadSlider" name="dofSpread" type="range" min="0" max="50" value="0" step="0.1" />
+        <br>
+        <label for="focalLength">Focal Length</label>
+        <input id="focalLengthSlider" name="focalLength" type="range" min="0" max="50" value="50" step="0.1" />
+      </p>
+      <hr/>
+      <p>
+        <div class="section">Environment</div>
+        <div class="radio">
+          <label for="envConstantBox">
+            <input type="radio" name="enviroments" id="envConstantBox" checked />Constant
+          </label>
+        </div>
+        <div class="radio">
+          <label for="hdrTest1">
+            <input type="radio" name="enviroments" id="hdrTest1">Morning</input>
+          </label>
+        </div>
+        <div class="radio">
+          <label for="hdrTest2">
+            <input type="radio" name="enviroments" id="hdrTest2">Afternoon</input>
+          </label>
+        </div>
+        <div class="radio">
+          <label for="hdrTest3">
+            <input type="radio" name="enviroments" id="hdrTest3">Night</input>
+          </label>
+        </div>
+        <label for="environmentRotation">Rotation</label>
+        <input id="environmentRotationSlider" name="environmentRotation" type="range" min="0" max="720" value="150" step="0.5" />
+
+        <label for="environmentIntensity">Intensity</label>
+        <input id="environmentIntensitySlider" name="environmentIntensity" type="range" min="0" max="5" value="0.5" step="0.01" />
+      </p>
+    </div>
+  </div>
+
+  <script src="js/gl-matrix.js"></script>
+  <script src="scripts.js"></script>
+</body>
+</html>
