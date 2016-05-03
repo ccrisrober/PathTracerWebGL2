@@ -9,7 +9,7 @@
 			</Attenuate>
 		</Box>-->
 		<Plane normal="0 1 0" d="0">
-			<PerlinTexture />
+			<WorleyTexture color1="1 1 0" color2="0 1 0" />
 		</Plane>
 		<Sphere center="25 80 0" radius="15">
 			<FresnelComposite na="1.33" nb="2.77">
